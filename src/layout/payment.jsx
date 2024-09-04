@@ -17,6 +17,9 @@ const Payment = () => {
   const [file, setFile] = useState(null)
   const [islOpen, setIsOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState(null);
+
   
 
   useEffect(() => {
@@ -221,6 +224,12 @@ const Payment = () => {
     }
   };
 
+  const hdlEditLocation = (location) => {
+    setEditingLocation(location);
+    setIsEditModalOpen(true);
+  };
+  
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
@@ -290,17 +299,76 @@ const Payment = () => {
         </table>
       </div>
 
-      
 
-      <div className="mt-5 flex justify-between">
-        <button 
+      <div className="flex flex-col md:flex-row justify-between gap-6 mt-6">
+  {/* Left Section: Address Selection */}
+  <div className="md:w-1/2 p-4 bg-gray-50 rounded-lg shadow-sm">
+  <button 
           type="button" 
           onClick={openModal}
           className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center"
         >
           เพิ่มที่อยู่
         </button>
-        <div>
+    <h3 className="text-xl font-bold mb-4 text-gray-800">เลือกที่อยู่การจัดส่ง</h3>
+    <ul className="space-y-3">
+      {location.map((location, index) => (
+        <li key={index}>
+          <label className="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-gray-100">
+            <input
+              type="radio"
+              name="location"
+              value={index}
+              checked={selectedLocation === location}
+              onChange={() => setSelectedAddress(location)}
+              className="mt-1 mr-3 accent-blue-600"
+            />
+            <span className="text-gray-700">
+              {`${location.house_number} ${location.village}, ${location.road}, ${location.districts}, ${location.amphures}, ${location.provinces}, ${location.zip_code}`}
+              <button
+  className="ml-10 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+  onClick={() => hdlEditLocation(location)}
+>
+  แก้ไขที่อยู่
+</button>
+
+            </span>
+          </label>
+          
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  
+
+  {/* Right Section: Payment Method Selection */}
+  <div className="md:w-1/2 p-4 bg-gray-50 rounded-lg shadow-sm">
+    <h3 className="text-xl font-bold mb-4 text-gray-800">เลือกวิธีการชำระเงิน</h3>
+    <div className="space-y-3">
+      <label className="flex items-center p-2 border rounded-lg cursor-pointer transition hover:bg-gray-100">
+        <input
+          type="radio"
+          name="paymentMethod"
+          value="โอนจ่าย"
+          checked={paymentMethod === "โอนจ่าย"}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          className="mr-3 accent-blue-600"
+        />
+        <span className="text-gray-700">โอนจ่าย</span>
+      </label>
+      {/* <label className="flex items-center p-2 border rounded-lg cursor-pointer transition hover:bg-gray-100">
+        <input
+          type="radio"
+          name="paymentMethod"
+          value="จ่ายปลายทาง"
+          checked={paymentMethod === "จ่ายปลายทาง"}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          className="mr-3 accent-blue-600"
+        />
+        <span className="text-gray-700">จ่ายปลายทาง</span>
+      </label> */}
+      <div>
           <h1 className="text-2xl font-bold">ราคารวม: {calculateTotalPrice()} บาท</h1>
           <button
             type="button"
@@ -310,53 +378,9 @@ const Payment = () => {
             ชำระเงิน
           </button>
         </div>
-      </div>
-      
-      <div className="mt-6">
-        <h3 className="text-xl font-bold mb-4">เลือกที่อยู่การจัดส่ง</h3>
-        <ul className="list-disc list-inside">
-          {location.map((location, index) => (
-            <li key={index} className="mb-2">
-              <label>
-                <input
-                  type="radio"
-                  name="location"
-                  value={index}
-                  checked={selectedLocation === location}
-                  onChange={() => setSelectedAddress(location)} 
-                  className="mr-2"
-                />
-                {`${location.house_number} ${location.village}, ${location.road}, ${location.districts}, ${location.amphures}, ${location.provinces}, ${location.zip_code}`}
-              </label>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="mt-6">
-        <h3 className="text-xl font-bold mb-4">เลือกวิธีการชำระเงิน</h3>
-        <label className="flex items-center">
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="โอนจ่าย"
-            checked={paymentMethod === "โอนจ่าย"}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="mr-2"
-          />
-          โอนจ่าย
-        </label>
-        <label className="flex items-center mt-2">
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="จ่ายปลายทาง"
-            checked={paymentMethod === "จ่ายปลายทาง"}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="mr-2"
-          />
-          จ่ายปลายทาง
-        </label>
-      </div>
+    </div>
+  </div>
+</div>
 
       {error && <div className="text-red-500 mt-4">{error}</div>}
       {success && <div className="text-green-500 mt-4">คำสั่งซื้อและการชำระเงินสำเร็จ!</div>}
@@ -375,13 +399,20 @@ const Payment = () => {
   handleFileChange={handleFileChange}
   handlePaymentAmountChange={handlePaymentAmountChange}
 />
+<EditLocationModal 
+  isOpen={isEditModalOpen} 
+  onClose={() => setIsEditModalOpen(false)} 
+  locationData={editingLocation} 
+  userId={user?.id} 
+/>
+
 
       
     </div>
   );
 };
 
-const LocationModal = ({ isOpen, onClose, onSubmit, userId }) => {
+const LocationModal = ({ isOpen, onClose, userId }) => {
   const [formData, setFormData] = useState({
     provinces: '',
     amphures: '',
@@ -511,5 +542,149 @@ const LocationModal = ({ isOpen, onClose, onSubmit, userId }) => {
     </div>
   );
 };
+
+
+
+
+const EditLocationModal = ({ isOpen, onClose, locationData, userId }) => {
+  const [EditformData, setFormData] = useState({
+    provinces: locationData?.provinces || '',
+    amphures: locationData?.amphures || '',
+    districts: locationData?.districts || '',
+    zip_code: locationData?.zip_code || '',
+    road: locationData?.road || '',
+    village: locationData?.village || '',
+    house_number: locationData?.house_number || '',
+    other: locationData?.other || '',
+    usersId: userId
+  });
+
+  useEffect(() => {
+    if (locationData) {
+      setFormData({
+        provinces: locationData.provinces,
+        amphures: locationData.amphures,
+        districts: locationData.districts,
+        zip_code: locationData.zip_code,
+        road: locationData.road,
+        village: locationData.village,
+        house_number: locationData.house_number,
+        other: locationData.other,
+        usersId: userId,
+      });
+    }
+  }, [locationData, userId]);
+
+  const handleChangeEdit = (e) => {
+    setFormData({
+      ...EditformData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:8000/locations/editlocation`, EditformData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onClose();
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating location:', error);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded shadow-lg">
+        <h2 className="text-xl font-bold mb-4">แก้ไขที่อยู่</h2>
+        <form onSubmit={handleSubmitEdit}>
+          <input
+            type="text"
+            name="provinces"
+            placeholder="จังหวัด"
+            value={EditformData.provinces}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <input
+            type="text"
+            name="amphures"
+            placeholder="อำเภอ"
+            value={EditformData.amphures}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <input
+            type="text"
+            name="districts"
+            placeholder="ตำบล"
+            value={EditformData.districts}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <input
+            type="text"
+            name="zip_code"
+            placeholder="รหัสไปรษณีย์"
+            value={EditformData.zip_code}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <input
+            type="text"
+            name="road"
+            placeholder="ถนน"
+            value={EditformData.road}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <input
+            type="text"
+            name="village"
+            placeholder="หมู่บ้าน"
+            value={EditformData.village}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <input
+            type="text"
+            name="house_number"
+            placeholder="บ้านเลขที่"
+            value={EditformData.house_number}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <textarea
+            name="other"
+            placeholder="ข้อมูลเพิ่มเติม"
+            value={EditformData.other}
+            onChange={handleChangeEdit}
+            className="w-full px-4 py-2 mb-2 border rounded"
+          />
+          <button
+            type="submit"
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mt-4"
+          >
+            บันทึก
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mt-4 ml-2"
+          >
+            ยกเลิก
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+
 
 export default Payment;
