@@ -1,0 +1,304 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  role     Role   @default(USER)
+  name     String
+  lastName String
+  phone    String
+  email    String @unique
+  password String
+
+  date DateTime @default(now()) @db.Timestamp()
+
+  order Order[]
+  cart  Cart[]
+
+  payment   Payment[]
+  Location  Location[]
+  Cartclone Cartclone[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Product {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  image     String
+  category  String
+  price     Int
+  store     Int
+  cart      Cart[]
+  cartclone Cartclone[]
+}
+
+model Location {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  provinces    String
+  amphures     String
+  districts    String
+  zip_code     Int
+  road         String
+  village      String
+  house_number String
+  other        String
+  user         Users  @relation(fields: [usersId], references: [id])
+  usersId      String @db.ObjectId
+
+  Payment Payment[]
+}
+
+model Order {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  status     String
+  date       DateTime     @default(now()) @db.Timestamp()
+  userId     String       @map("user_id") @db.ObjectId
+  user       Users        @relation(fields: [userId], references: [id])
+  orderCarts OrderCarts[]
+  payment    Payment[]
+}
+
+model Cart {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  total     Int
+  all_price Int
+  userId    String   @map("user_id") @db.ObjectId
+  user      Users    @relation(fields: [userId], references: [id])
+  status    String
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId String?  @db.ObjectId
+}
+
+model Cartclone {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  total      Int
+  all_price  Int
+  userId     String       @db.ObjectId
+  user       Users        @relation(fields: [userId], references: [id])
+  status     String
+  orderCarts OrderCarts[]
+  product    Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId  String?      @db.ObjectId
+}
+
+model OrderCarts {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String    @map("order_id") @db.ObjectId
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  cartcloneId String    @map("cartclone_id") @db.ObjectId
+  cartclone   Cartclone @relation(fields: [cartcloneId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, cartcloneId], name: "order_cart_idx")
+}
+
+model Payment {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  date             DateTime           @default(now()) @db.Timestamp()
+  userId           String             @map("user_id") @db.ObjectId
+  user             Users              @relation(fields: [userId], references: [id])
+  status           String
+  all_price        Int
+  make_payment     String
+  orderId          String             @map("order_id") @db.ObjectId
+  order            Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  location         Location           @relation(fields: [locationId], references: [id])
+  locationId       String             @db.ObjectId
+  CanCel           CanCel[]
+  Transfer_Payment Transfer_Payment[]
+}
+
+model Transfer_Payment {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  pay       String
+  image     String
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  paymentId String  @db.ObjectId
+}
+
+model CanCel {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  note      String
+  date      DateTime @default(now()) @db.Timestamp()
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  paymentId String   @db.ObjectId
+}
+
+// cartcloneId String?    @map("cartclone_id") @db.ObjectId
+// cartclone   Cartclone? @relation(fields: [cartcloneId], references: [id])
+
+// model Order {
+//   id     String   @id @default(auto()) @map("_id") @db.ObjectId
+//   date   DateTime @default(now()) @db.Timestamp()
+//   userId String   @map("user_id") @db.ObjectId
+//   user   Users    @relation(fields: [userId], references: [id])
+//   paymentId String 
+//   status String
+// }
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "mysql"
+//   url      = env("DATABASE_URL")
+// }
+
+// model User {
+//   id       Int      @id @default(autoincrement())
+//   role     Role     @default(USER)
+//   name     String   
+//   lastName String
+//   phone    String
+//   address  String
+//   email    String   @unique
+//   password String
+//   date     DateTime 
+//   carts    Cart[]
+//   orders   Order[]
+//   payments Payment[]
+// }
+
+// enum Role {
+//   USER
+//   ADMIN
+// }
+
+// model Product {
+//   id       Int      @id @default(autoincrement())
+//   name     String  
+//   image    String
+//   category String
+//   price    Int
+//   carts    Cart[]
+// }
+
+// model Cart {
+//   id        Int      @id @default(autoincrement())
+//   size      Size     @default(NULL)
+//   total     Int
+//   allPrice  Int
+//   userId    Int
+//   user      User     @relation(fields: [userId], references: [id])
+//   productId Int
+//   product   Product  @relation(fields: [productId], references: [id])
+//   orders    Order[]
+// }
+
+// enum Size {
+//   NULL
+//   S
+//   M
+//   L
+//   XL
+//   XXL
+// }
+
+// model Order {
+//   id       Int      @id @default(autoincrement())
+//   status   Status
+//   date     DateTime 
+//   userId   Int
+//   user     User     @relation(fields: [userId], references: [id])
+//   cartId   Int
+//   cart     Cart     @relation(fields: [cartId], references: [id])
+//   payments Payment[]
+// }
+
+// enum Status {
+//   OKAY
+//   NOT_OKAY
+// }
+
+// model Payment {
+//   id      Int      @id @default(autoincrement())
+//   date    DateTime 
+//   userId  Int
+//   user    User     @relation(fields: [userId], references: [id])
+//   orderId Int
+//   order   Order    @relation(fields: [orderId], references: [id])
+// }
+
+// model Users {
+//   id       String @id @default(auto()) @map("_id") @db.ObjectId
+//   role     Role   @default(USER)
+//   name     String
+//   lastName String
+//   phone    String
+//   address  String
+//   email    String @unique
+//   password String
+
+//   date DateTime @default(now()) @db.Timestamp()
+
+//   order   Order[]
+//   cart    Cart[]
+
+//   payment Payment[]
+// }
+
+// enum Role {
+//   USER
+//   ADMIN
+// }
+
+// model Product {
+//   id       String @id @default(auto()) @map("_id") @db.ObjectId
+//   name     String
+//   image    String
+//   category String
+//   price    Int
+//   cart     Cart[]
+// }
+
+// model Cart {
+//   id        String @id @default(auto()) @map("_id") @db.ObjectId
+//   total     Int
+//   all_price Int
+//   userId    String @map("user_id") @db.ObjectId
+//   user      Users  @relation(fields: [userId], references: [id])
+
+//   payments  Payment[]
+//   product   Product?  @relation(fields: [productId], references: [id])
+//   productId String?   @db.ObjectId
+// }
+
+// model Payment {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   date      DateTime @default(now()) @db.Timestamp()
+//   userId    String   @map("user_id") @db.ObjectId
+//   user      Users    @relation(fields: [userId], references: [id])
+//   status    String
+//   all_price Int
+//   orderId   String   @map("order_id") @db.ObjectId
+//   order     Order    @relation(fields: [orderId], references: [id])
+
+//   cartId String? @map("cart_id") @db.ObjectId
+//   cart   Cart?   @relation(fields: [cartId], references: [id])
+// }
+
+// model Order {
+//   id         String       @id @default(auto()) @map("_id") @db.ObjectId
+//   status     String
+//   date       DateTime     @default(now()) @db.Timestamp()
+//   userId     String       @map("user_id") @db.ObjectId
+//   user       Users        @relation(fields: [userId], references: [id])
+
+//   Payment Payment[]
+// }
